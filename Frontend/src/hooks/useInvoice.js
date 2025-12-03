@@ -1,20 +1,47 @@
-// src/hooks/useInvoice.js (FIXED for ReferenceError/TypeError)
+// src/hooks/useInvoice.js (Modified for Quotation/Invoice Management)
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react'; 
 
-const INITIAL_INVOICE_HEADER = {
+const generateHeader = (type = 'Invoice') => ({
     clientName: '',
     clientAddress: '',
-    invoiceNumber: 'INV-' + Math.floor(Math.random() * 100000),
+    // Use a basic unique ID and prefix based on type
+    documentNumber: type === 'Quotation' ? 'QUO-' + Math.floor(Math.random() * 100000) : 'INV-' + Math.floor(Math.random() * 100000),
     date: new Date().toLocaleDateString(),
-};
+    // Add validUntil for Quotations, default to 30 days later
+    validUntil: type === 'Quotation' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : '',
+});
+
+const INITIAL_INVOICE_HEADER = generateHeader('Invoice');
+
 
 // Simplified arguments
 export const useInvoice = ({ services, taxRate, showStatus, setCurrentView }) => { 
+    // State to hold the current document type (Invoice or Quotation)
+    const [documentType, setDocumentType] = useState('Invoice');
     const [invoiceItems, setInvoiceItems] = useState([]); 
     const [invoiceHeader, setInvoiceHeader] = useState(INITIAL_INVOICE_HEADER);
 
-    // --- Calculation Logic ---
+    // Function to clear the invoice and optionally change type
+    const handleClearInvoice = useCallback((newType = documentType) => {
+        if (window.confirm(`Are you sure you want to clear all items and start a new ${newType}?`)) {
+            setInvoiceItems([]);
+            setInvoiceHeader(generateHeader(newType));
+            setDocumentType(newType); // Update the type if clearing
+            showStatus('success', `${newType} cleared. Starting a new draft.`);
+        }
+    }, [documentType, showStatus]);
+    
+    // Handler to switch between document types and reset the form
+    const switchDocumentType = useCallback((newType) => {
+        // Only trigger clear/reset if the type is actually changing
+        if (newType !== documentType) {
+            handleClearInvoice(newType);
+        }
+    }, [documentType, handleClearInvoice]);
+
+
+    // --- Calculation Logic (remains the same) ---
     const { subtotal, taxAmount, total } = useMemo(() => {
         const calculatedSubtotal = invoiceItems.reduce((acc, item) => {
             const qty = parseFloat(item.quantity) || 0;
@@ -55,24 +82,20 @@ export const useInvoice = ({ services, taxRate, showStatus, setCurrentView }) =>
             quantity: 1,
             rate: service.rate,
         });
-        showStatus('success', `Added ${service.name} to invoice.`);
-        setCurrentView('invoice');
+        showStatus('success', `Added ${service.name} to ${documentType}.`);
+        setCurrentView('document'); 
     };
     
-    const handleClearInvoice = () => {
-        if (window.confirm("Are you sure you want to clear all items from the current invoice?")) {
-            setInvoiceItems([]);
-            setInvoiceHeader(INITIAL_INVOICE_HEADER);
-            showStatus('success', 'Invoice cleared. Starting a new quote.');
-        }
-    }
 
     return {
         // State
         invoiceItems,
-        setInvoiceItems, // <--- Correctly returned
+        setInvoiceItems, 
         invoiceHeader,
         setInvoiceHeader,
+        documentType, 
+        setDocumentType, 
+        switchDocumentType, 
         
         // Calculated values
         subtotal,
@@ -84,6 +107,6 @@ export const useInvoice = ({ services, taxRate, showStatus, setCurrentView }) =>
         removeInvoiceItem,
         addInvoiceItem,
         addServiceToInvoice,
-        handleClearInvoice,
+        handleClearInvoice: () => handleClearInvoice(documentType), 
     };
 };

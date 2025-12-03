@@ -1,4 +1,4 @@
-// src/views/InvoiceGenerator.jsx
+// src/views/InvoiceGenerator.jsx (Modified for Quotation/Invoice Document Generation)
 
 import React from 'react';
 import { FileText, Printer, RotateCcw, Plus } from 'lucide-react';
@@ -6,7 +6,7 @@ import InvoiceLineItem from '../components/InvoiceLineItem';
 import InvoiceInput from '../components/Shared/InvoiceInput';
 import { formatCurrency } from '../utils/formatCurrency';
 
-const InvoiceGenerator = ({ 
+const DocumentGenerator = ({ 
     profile, 
     invoiceHeader, 
     setInvoiceHeader, 
@@ -15,23 +15,49 @@ const InvoiceGenerator = ({
     taxRate, 
     taxAmount, 
     total,
+    documentType, // NEW
     handleClearInvoice,
     addInvoiceItem,
     updateInvoiceItem,
     removeInvoiceItem,
 }) => {
+    
+    // Dynamic Labels and Data
+    const isQuotation = documentType === 'Quotation';
+    const documentTitle = isQuotation ? 'Quotation Template' : 'Invoice Template';
+    const headerTitle = isQuotation ? 'QUOTATION / ESTIMATE' : 'INVOICE';
+    const numberLabel = isQuotation ? 'Estimate Number' : 'Invoice Number';
     const contactLine = `Mail: ${profile.contactMail} | Mobile: ${profile.contactMobile} | ${profile.website}`;
+    
+    // Quotation specific footer terms (based on user's RichMark Holdings Quatation.pdf)
+    const quoteTerms = (
+        <>
+            <p className="mt-3 text-sm text-gray-700 font-semibold border-b pb-1">Notes/Terms:</p>
+            <p className="text-xs mt-1">
+                Payment Terms: A deposit of 50% is required upon acceptance of this quotation, with the balance due upon completion of the services. We accept payments via bank transfer.
+            </p>
+            <p className="text-xs mt-1">
+                Scope of Work: The services provided are as per this quotation. Any additional services will be subject to a separate quotation.
+            </p>
+            <p className="text-xs mt-3">
+                Account Details: Acc No-77944346 | Bank of Ceylon | Gampola City 
+                [cite_start]{/* Used account details from RichMark Holdings Quatation.pdf for placeholder [cite: 22, 23] */}
+            </p>
+        </>
+    );
+
+    // Invoice specific footer terms (kept simple)
+    const invoiceTerms = (
+        <p>Thank you for your business. Please remit payment within 30 days.</p>
+    );
+
 
     return (
         <div className="p-6 bg-white rounded-xl shadow-xl">
             <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center justify-between">
-                <span className="flex items-center"><FileText size={28} className="mr-3 text-blue-500" /> Generate Customer Invoice</span>
-                <button
-                    onClick={handleClearInvoice}
-                    className="flex items-center text-sm px-3 py-1 bg-gray-100 text-red-600 rounded-lg font-medium hover:bg-gray-200 transition"
-                >
-                    <RotateCcw size={16} className="mr-1" /> Clear Invoice
-                </button>
+                {/* Title updated as requested */}
+                <span className="flex items-center"><FileText size={28} className="mr-3 text-blue-500" /> {documentTitle}</span>
+                {/* Clear Invoice button is REMOVED as requested */}
             </h2>
 
             <div className="w-full bg-white print:shadow-none print:rounded-none print:p-0">
@@ -44,25 +70,36 @@ const InvoiceGenerator = ({
                         <p className="text-xs text-gray-400 mt-1">Status: Ready to Print</p>
                     </div>
                     <div className="text-left sm:text-right">
-                        <h2 className="text-3xl font-bold text-gray-800 mb-2">INVOICE</h2>
+                        <h2 className="text-3xl font-bold text-gray-800 mb-2">{headerTitle}</h2>
                         <div className="text-sm text-gray-600 print:text-xs">
                             <p className="mb-1 flex justify-end items-center sm:block">
-                                <strong className="sm:mr-2">Invoice #:</strong> 
+                                <strong className="sm:mr-2">{numberLabel} #:</strong> 
                                 <InvoiceInput 
-                                    value={invoiceHeader.invoiceNumber} 
-                                    onChange={(val) => setInvoiceHeader(p => ({ ...p, invoiceNumber: val }))} 
-                                    placeholder="INV-XXXXX" 
+                                    value={invoiceHeader.documentNumber} 
+                                    onChange={(val) => setInvoiceHeader(p => ({ ...p, documentNumber: val }))} 
+                                    placeholder={isQuotation ? 'EN-XXXXX' : 'INV-XXXXX'} 
                                     className="p-1 w-32 text-right text-sm border-dashed print:border-none"
                                 />
                             </p>
                             <p>
                                 <strong>Date:</strong> {invoiceHeader.date}
                             </p>
+                            {isQuotation && (
+                                <p>
+                                    <strong>Valid Until:</strong> 
+                                    <InvoiceInput 
+                                        value={invoiceHeader.validUntil}
+                                        onChange={(val) => setInvoiceHeader(p => ({ ...p, validUntil: val }))}
+                                        placeholder="Date"
+                                        className="p-1 w-24 text-right text-sm border-dashed print:border-none inline-block"
+                                    />
+                                </p>
+                            )}
                         </div>
                     </div>
                 </header>
 
-                {/* Client Info Section */}
+                {/* Client Info Section (Billed To) */}
                 <section className="mb-10 p-4 border rounded-lg bg-gray-50 print:p-2 print:border-none print:bg-white">
                     <h3 className="text-sm font-semibold uppercase text-gray-600 mb-2">Billed To:</h3>
                     <div className="flex flex-col space-y-2">
@@ -148,8 +185,8 @@ const InvoiceGenerator = ({
                 </div>
 
                 {/* Footer Notes */}
-                <footer className="mt-12 pt-6 border-t border-gray-200 text-center text-xs text-gray-500 print:mt-6 print:text-[10px]">
-                    <p>Thank you for your business. Please remit payment within 30 days.</p>
+                <footer className={`mt-12 pt-6 border-t border-gray-200 text-center text-xs text-gray-500 print:mt-6 print:text-[10px] ${isQuotation ? 'text-left px-4' : 'text-center'}`}>
+                    {isQuotation ? quoteTerms : invoiceTerms}
                     <p className="mt-1">"{profile.tagline}"</p>
                 </footer>
 
@@ -162,11 +199,11 @@ const InvoiceGenerator = ({
                     className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition shadow-xl"
                 >
                     <Printer size={20} />
-                    <span>Print Invoice (to PDF)</span>
+                    <span>Print {documentType} (to PDF)</span>
                 </button>
             </div>
         </div>
     );
 };
 
-export default InvoiceGenerator;
+export default DocumentGenerator;

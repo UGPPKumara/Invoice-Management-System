@@ -1,6 +1,6 @@
-// src/hooks/useFirestoreData.js (FIXED for Stability and Permissions)
+// src/hooks/useFirestoreData.js (FIXED for Reference Stability)
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react'; // ADDED useMemo
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db, getCurrentUserId } from '../firebase';
 import { INITIAL_FIRESTORE_DATA } from '../constants/initialData';
@@ -14,7 +14,12 @@ export const useFirestoreData = (isAuthenticated, showStatus) => {
     const [isLoadingData, setIsLoadingData] = useState(true);
 
     const userId = getCurrentUserId();
-    const docRef = userId ? doc(db, COLLECTION_NAME, userId) : null;
+    
+    // FIX: Memoize docRef to ensure object reference stability. 
+    // The doc() function creates a new object on every render, destabilizing dependencies.
+    const docRef = useMemo(() => {
+        return userId ? doc(db, COLLECTION_NAME, userId) : null;
+    }, [userId]); // docRef only changes when userId changes.
 
     // --- Data Saving Utility ---
     const saveData = useCallback(async (updates, successMessage = 'Data saved successfully!') => {

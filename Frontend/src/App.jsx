@@ -1,4 +1,4 @@
-// src/App.jsx
+// src/App.jsx (Modified for Quotation/Invoice Management)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { signOut, onAuthStateChanged } from "firebase/auth";
@@ -14,7 +14,7 @@ import AdminLogin from './components/AdminLogin';
 import Sidebar from './components/Sidebar';
 import MobileHeader from './components/MobileHeader';
 import StatusMessage from './components/StatusMessage';
-import InvoiceGenerator from './views/InvoiceGenerator';
+import DocumentGenerator from './views/InvoiceGenerator'; 
 import ServiceManagement from './views/ServiceManagement';
 import CompanyProfileManager from './views/CompanyProfileManager';
 
@@ -22,7 +22,8 @@ import CompanyProfileManager from './views/CompanyProfileManager';
 const App = () => {
     // --- Global UI State ---
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [currentView, setCurrentView] = useState('WordPress');
+    // Changed initial view name to 'WordPress'
+    const [currentView, setCurrentView] = useState('WordPress'); 
     const [statusMessage, setStatusMessage] = useState({ type: null, text: '' });
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [initialAuthCheckComplete, setInitialAuthCheckComplete] = useState(false);
@@ -68,11 +69,12 @@ const App = () => {
         }
     };
     
-    // --- INVOICE CALCULATION HOOK ---
+    // --- INVOICE/QUOTATION CALCULATION HOOK ---
     const { 
         invoiceItems, setInvoiceItems, 
         invoiceHeader, setInvoiceHeader, 
         subtotal, taxAmount, total,
+        documentType, switchDocumentType, 
         updateInvoiceItem, removeInvoiceItem, addInvoiceItem, 
         addServiceToInvoice, handleClearInvoice
     } = useInvoice({ 
@@ -99,10 +101,9 @@ const App = () => {
     
     // Determine which content component to render
     const renderContent = () => {
-        switch (currentView) {
-            case 'invoice':
-                return (
-                    <InvoiceGenerator 
+        if (currentView === 'document') {
+             return (
+                    <DocumentGenerator 
                         profile={companyProfile}
                         invoiceHeader={invoiceHeader}
                         setInvoiceHeader={setInvoiceHeader}
@@ -111,35 +112,39 @@ const App = () => {
                         taxRate={taxRate}
                         taxAmount={taxAmount}
                         total={total}
+                        // Pass document specific props
+                        documentType={documentType} 
+                        switchDocumentType={switchDocumentType} 
                         handleClearInvoice={handleClearInvoice}
                         addInvoiceItem={addInvoiceItem}
                         updateInvoiceItem={updateInvoiceItem}
                         removeInvoiceItem={removeInvoiceItem}
                     />
                 );
-            case 'profile':
-                return (
-                    <CompanyProfileManager
-                        companyProfile={companyProfile}
-                        setCompanyProfile={setCompanyProfile}
-                        showStatus={showStatus}
-                    />
-                );
-            default:
-                // Service Management (Category views)
-                return (
-                    <ServiceManagement 
-                        category={currentView}
-                        services={services}
-                        setServices={setServices}
-                        taxRate={taxRate}
-                        setTaxRate={setTaxRate}
-                        showStatus={showStatus}
-                        addServiceToInvoice={addServiceToInvoice}
-                    />
-                );
+        } else if (currentView === 'profile') {
+            return (
+                <CompanyProfileManager
+                    companyProfile={companyProfile}
+                    setCompanyProfile={setCompanyProfile}
+                    showStatus={showStatus}
+                />
+            );
+        } else {
+            // Service Management (Category views) - handles 'WordPress', 'Websites', etc.
+            return (
+                <ServiceManagement 
+                    category={currentView}
+                    services={services}
+                    setServices={setServices}
+                    taxRate={taxRate}
+                    setTaxRate={setTaxRate}
+                    showStatus={showStatus}
+                    addServiceToInvoice={addServiceToInvoice}
+                />
+            );
         }
     }
+
 
     return (
         <div className="bg-gray-50 min-h-screen font-sans antialiased flex flex-col md:flex-row p-0 print:p-0">
@@ -155,6 +160,9 @@ const App = () => {
                 isSidebarOpen={isSidebarOpen}
                 handleLogout={handleLogout}
                 invoiceItemCount={invoiceItems.length}
+                // NEW props for document management
+                documentType={documentType}
+                switchDocumentType={switchDocumentType}
             />
             
             {isSidebarOpen && (

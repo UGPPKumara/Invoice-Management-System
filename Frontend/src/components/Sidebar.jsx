@@ -1,7 +1,7 @@
-// src/components/Sidebar.jsx
+// src/components/Sidebar.jsx (Modified for Quotation/Invoice Management)
 
 import React, { useState } from 'react';
-import { LogOut, Settings, FileText, Globe, Smartphone, Feather, Code, X, ChevronDown, ChevronRight, Briefcase } from 'lucide-react';
+import { LogOut, Settings, FileText, Globe, Smartphone, Feather, Code, X, ChevronDown, ChevronRight, Briefcase, FileSignature } from 'lucide-react'; 
 import NavItem from './NavItem';
 
 export const getServiceIcon = (category) => {
@@ -37,9 +37,45 @@ const SubNavItem = ({ category, currentView, setCurrentView, setIsSidebarOpen })
 };
 
 
-const Sidebar = ({ services, currentView, setCurrentView, setIsSidebarOpen, isSidebarOpen, handleLogout, invoiceItemCount }) => {
+const Sidebar = ({ services, currentView, setCurrentView, setIsSidebarOpen, isSidebarOpen, handleLogout, invoiceItemCount, documentType, switchDocumentType }) => {
     const [isServicesOpen, setIsServicesOpen] = useState(true);
     const serviceCategories = Object.keys(services);
+    
+    // Custom NavItem to handle document switching and view change
+    const DocumentNavItem = ({ type, icon: Icon, label, docType }) => {
+        const isActive = currentView === type;
+        const isSelectedDocType = documentType === docType;
+        
+        const handleClick = () => {
+            // If currently on document view, just switch type
+            if (isActive && !isSelectedDocType) {
+                switchDocumentType(docType);
+            } else {
+                // If switching view or the new type is selected, set view
+                setCurrentView(type);
+                setIsSidebarOpen(false);
+                // Ensure correct type is set if switching view
+                if (documentType !== docType) {
+                    switchDocumentType(docType);
+                }
+            }
+        };
+
+        return (
+            <button
+                onClick={handleClick}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition duration-150 text-left
+                    ${isActive && isSelectedDocType 
+                        ? 'bg-blue-600 text-white shadow-lg' 
+                        : 'text-blue-200 hover:bg-blue-700 hover:text-white'
+                    }`}
+            >
+                <Icon size={20} className="flex-shrink-0" />
+                <span className="truncate">{label} {docType} ({invoiceItemCount})</span>
+            </button>
+        );
+    }
+
 
     return (
         <nav className={`fixed inset-y-0 left-0 z-40 w-64 bg-blue-800 text-white flex flex-col transition-transform duration-300 ease-in-out print:hidden 
@@ -71,6 +107,7 @@ const Sidebar = ({ services, currentView, setCurrentView, setIsSidebarOpen, isSi
                 {/* Manage Services Main Item */}
                 <button
                     onClick={() => setIsServicesOpen(!isServicesOpen)}
+                    // Logic to check if any service view is active
                     className={`w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg font-medium transition duration-150 text-left ${
                         serviceCategories.includes(currentView)
                         ? 'bg-blue-600 text-white shadow-lg' 
@@ -99,15 +136,24 @@ const Sidebar = ({ services, currentView, setCurrentView, setIsSidebarOpen, isSi
                     </div>
                 )}
                 
-                {/* Invoice Generator Item */}
-                <NavItem
-                    icon={FileText}
-                    label={`Generate Invoice (${invoiceItemCount})`}
-                    view="invoice"
-                    currentView={currentView}
-                    setCurrentView={setCurrentView}
-                    setIsSidebarOpen={setIsSidebarOpen}
-                />
+                {/* Document Generator Items (New Section) */}
+                <div className="pt-4 space-y-1 border-t border-blue-700">
+                    <h3 className="text-xs font-semibold uppercase text-blue-400 px-4 pt-1">Document Generation</h3>
+                    
+                    <DocumentNavItem
+                        type="document"
+                        icon={FileText}
+                        label="Generate"
+                        docType="Invoice"
+                    />
+
+                    <DocumentNavItem
+                        type="document"
+                        icon={FileSignature}
+                        label="Generate"
+                        docType="Quotation"
+                    />
+                </div>
 
             </div>
 
