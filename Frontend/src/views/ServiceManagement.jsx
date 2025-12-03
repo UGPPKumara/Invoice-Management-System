@@ -6,12 +6,12 @@ import InvoiceInput from '../components/Shared/InvoiceInput';
 import ServiceCard from '../components/ServiceCard';
 import { getServiceIcon } from '../components/Sidebar';
 
-const ServiceList = ({ category, services, setServices, addServiceToInvoice, showStatus }) => {
+const ServiceList = ({ category, services, setServices, addServiceToInvoice, showStatus, documentType }) => { // <-- documentType added here
     const [isAdding, setIsAdding] = useState(false);
     const [currentPackage, setCurrentPackage] = useState({ id: null, name: '', description: '', rate: 0, details: [''] });
 
     const currentServices = services[category] || [];
-
+    // ... existing handlers (handleSave, handleDelete, etc.) ...
     const handleSave = (e) => {
         e.preventDefault();
         if (!currentPackage.name || !currentPackage.rate) {
@@ -181,6 +181,7 @@ const ServiceList = ({ category, services, setServices, addServiceToInvoice, sho
                         handleEdit={handleEdit}
                         handleDelete={handleDelete}
                         addServiceToInvoice={addServiceToInvoice}
+                        documentType={documentType} // <-- Passed documentType
                     />
                 ))}
             </div>
@@ -189,7 +190,7 @@ const ServiceList = ({ category, services, setServices, addServiceToInvoice, sho
 };
 
 
-const ServiceManagement = ({ category, services, setServices, taxRate, setTaxRate, showStatus, addServiceToInvoice }) => {
+const ServiceManagement = ({ category, services, setServices, taxRate, setTaxRate, showStatus, addServiceToInvoice, documentType }) => { // <-- documentType added here
     const [tempTaxRate, setTempTaxRate] = useState(taxRate * 100);
 
     const handleTaxRateUpdate = () => {
@@ -240,6 +241,7 @@ const ServiceManagement = ({ category, services, setServices, taxRate, setTaxRat
                 setServices={setServices} 
                 addServiceToInvoice={addServiceToInvoice} 
                 showStatus={showStatus}
+                documentType={documentType} // <-- Passed documentType
             />
         </div>
     );

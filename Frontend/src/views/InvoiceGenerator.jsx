@@ -1,7 +1,7 @@
-// src/views/InvoiceGenerator.jsx (Modified for Quotation/Invoice Document Generation)
+// src/views/InvoiceGenerator.jsx (Modified to add Save Document functionality)
 
 import React from 'react';
-import { FileText, Printer, RotateCcw, Plus } from 'lucide-react';
+import { FileText, Printer, RotateCcw, Plus, Save } from 'lucide-react'; // Added Save icon
 import InvoiceLineItem from '../components/InvoiceLineItem';
 import InvoiceInput from '../components/Shared/InvoiceInput';
 import { formatCurrency } from '../utils/formatCurrency';
@@ -15,11 +15,12 @@ const DocumentGenerator = ({
     taxRate, 
     taxAmount, 
     total,
-    documentType, // NEW
+    documentType, 
     handleClearInvoice,
     addInvoiceItem,
     updateInvoiceItem,
     removeInvoiceItem,
+    handleSaveDocument, // NEW: Save function from App.jsx
 }) => {
     
     // Dynamic Labels and Data
@@ -41,7 +42,6 @@ const DocumentGenerator = ({
             </p>
             <p className="text-xs mt-3">
                 Account Details: Acc No-77944346 | Bank of Ceylon | Gampola City 
-                [cite_start]{/* Used account details from RichMark Holdings Quatation.pdf for placeholder [cite: 22, 23] */}
             </p>
         </>
     );
@@ -55,9 +55,13 @@ const DocumentGenerator = ({
     return (
         <div className="p-6 bg-white rounded-xl shadow-xl">
             <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center justify-between">
-                {/* Title updated as requested */}
                 <span className="flex items-center"><FileText size={28} className="mr-3 text-blue-500" /> {documentTitle}</span>
-                {/* Clear Invoice button is REMOVED as requested */}
+                <button
+                    onClick={handleClearInvoice}
+                    className="flex items-center text-sm px-3 py-1 bg-gray-100 text-red-600 rounded-lg font-medium hover:bg-gray-200 transition"
+                >
+                    <RotateCcw size={16} className="mr-1" /> Clear {documentType}
+                </button>
             </h2>
 
             <div className="w-full bg-white print:shadow-none print:rounded-none print:p-0">
@@ -192,8 +196,15 @@ const DocumentGenerator = ({
 
             </div>
 
-            {/* Print Button (Hidden on Print) */}
-            <div className="print:hidden mt-6 w-full flex justify-end">
+            {/* Action Buttons (Save & Print) */}
+            <div className="print:hidden mt-6 w-full flex justify-end space-x-4">
+                <button
+                    onClick={handleSaveDocument}
+                    className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition shadow-xl"
+                >
+                    <Save size={20} />
+                    <span>Save {documentType}</span>
+                </button>
                 <button
                     onClick={() => window.print()}
                     className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition shadow-xl"

@@ -1,4 +1,4 @@
-// src/hooks/useInvoice.js (Modified for Quotation/Invoice Management)
+// src/hooks/useInvoice.js (Modified to export header and add loadDocumentData)
 
 import { useState, useMemo, useCallback } from 'react'; 
 
@@ -12,8 +12,7 @@ const generateHeader = (type = 'Invoice') => ({
     validUntil: type === 'Quotation' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString() : '',
 });
 
-const INITIAL_INVOICE_HEADER = generateHeader('Invoice');
-
+export const INITIAL_INVOICE_HEADER = generateHeader('Invoice'); // EXPORTED
 
 // Simplified arguments
 export const useInvoice = ({ services, taxRate, showStatus, setCurrentView }) => { 
@@ -86,6 +85,21 @@ export const useInvoice = ({ services, taxRate, showStatus, setCurrentView }) =>
         setCurrentView('document'); 
     };
     
+    // NEW: Function to populate the editor with loaded document data
+    const loadDocumentData = useCallback((doc) => {
+        setDocumentType(doc.documentType || 'Invoice');
+        setInvoiceHeader({
+            clientName: doc.clientName || '',
+            clientAddress: doc.clientAddress || '',
+            documentNumber: doc.documentNumber || generateHeader(doc.documentType).documentNumber,
+            date: doc.date || new Date().toLocaleDateString(),
+            validUntil: doc.validUntil || '',
+        });
+        setInvoiceItems(doc.invoiceItems || []);
+        showStatus('info', `${doc.documentType} ${doc.documentNumber} loaded for editing.`);
+        setCurrentView('document');
+    }, [showStatus, setCurrentView]);
+
 
     return {
         // State
@@ -108,5 +122,6 @@ export const useInvoice = ({ services, taxRate, showStatus, setCurrentView }) =>
         addInvoiceItem,
         addServiceToInvoice,
         handleClearInvoice: () => handleClearInvoice(documentType), 
+        loadDocumentData, // EXPORTED
     };
 };

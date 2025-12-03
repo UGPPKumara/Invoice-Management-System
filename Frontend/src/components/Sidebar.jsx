@@ -1,7 +1,7 @@
-// src/components/Sidebar.jsx (Modified for Quotation/Invoice Management)
+// src/components/Sidebar.jsx (Modified for Document Management and Dashboard)
 
 import React, { useState } from 'react';
-import { LogOut, Settings, FileText, Globe, Smartphone, Feather, Code, X, ChevronDown, ChevronRight, Briefcase, FileSignature } from 'lucide-react'; 
+import { LogOut, Settings, FileText, Globe, Smartphone, Feather, Code, X, ChevronDown, ChevronRight, Briefcase, FileSignature, LayoutDashboard } from 'lucide-react'; // Added LayoutDashboard
 import NavItem from './NavItem';
 
 export const getServiceIcon = (category) => {
@@ -78,8 +78,8 @@ const Sidebar = ({ services, currentView, setCurrentView, setIsSidebarOpen, isSi
 
 
     return (
-        <nav className={`fixed inset-y-0 left-0 z-40 w-64 bg-blue-800 text-white flex flex-col transition-transform duration-300 ease-in-out print:hidden 
-            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 md:flex-shrink-0`}>
+        <nav className={` inset-y-0 left-0 z-40 w-64 bg-blue-800 text-white flex flex-col transition-transform duration-300 ease-in-out print:hidden 
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:h-screen md:translate-x-0 md:flex-shrink-0`}>
             
             {/* Logo/Header */}
             <div className="p-6 border-b border-blue-700 flex justify-between items-center">
@@ -91,8 +91,18 @@ const Sidebar = ({ services, currentView, setCurrentView, setIsSidebarOpen, isSi
                 </button>
             </div>
 
-            {/* Main Navigation */}
-            <div className="flex-grow p-4 space-y-2 overflow-y-auto">
+            {/* Main Navigation - This area has no internal scrollbar */}
+            <div className="flex-grow p-4 space-y-2">
+                
+                {/* NEW: Dashboard Item */}
+                <NavItem
+                    icon={LayoutDashboard}
+                    label="Dashboard"
+                    view="dashboard"
+                    currentView={currentView}
+                    setCurrentView={setCurrentView}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                />
                 
                 {/* Company Profile Item */}
                 <NavItem

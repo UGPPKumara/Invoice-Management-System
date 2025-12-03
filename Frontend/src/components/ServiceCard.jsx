@@ -4,7 +4,7 @@ import React from 'react';
 import { Trash2, Plus } from 'lucide-react';
 import { formatCurrency } from '../utils/formatCurrency';
 
-const ServiceCard = ({ service, category, handleEdit, handleDelete, addServiceToInvoice }) => (
+const ServiceCard = ({ service, category, handleEdit, handleDelete, addServiceToInvoice, documentType = 'Invoice' }) => (
     <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
         <h4 className="text-2xl font-bold text-blue-700 mb-1">{service.name}</h4>
         <p className="text-xl font-extrabold text-green-600 mt-1">{formatCurrency(service.rate)}</p>
@@ -34,7 +34,7 @@ const ServiceCard = ({ service, category, handleEdit, handleDelete, addServiceTo
                 className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md flex items-center space-x-1"
             >
                 <Plus size={16} />
-                <span>Add to Invoice</span>
+                <span>{`Add to ${documentType}`}</span>
             </button>
         </div>
     </div>
